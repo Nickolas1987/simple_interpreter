@@ -4,11 +4,8 @@ using namespace InterpreterNP;
 int main(int argc, char* argv[]) {
     try {
         if(argc > 1){
-        std::cout<<"xxx";
           CInterpreter _interpreter;
-        std::cout<<"xxx";
           _interpreter.Init();
-        std::cout<<"xxx";
           _interpreter.Run(argv[1]);
         }
         else
