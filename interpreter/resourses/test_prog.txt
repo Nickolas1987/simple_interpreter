@@ -1,0 +1,19 @@
+C="y";
+while(C="y"){
+print "Enter first arg:";
+input "%f",A;
+print "Enter operation:";
+input O;
+print "Enter second arg:";
+input "%f",B;
+if(O="*")
+print A*B;
+if(O="/")
+print A/B;
+if(O="+")
+print A+B;
+if(O="-")
+print A-B;
+print "Do you want continue?(y/n)";
+input C;
+}

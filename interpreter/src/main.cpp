@@ -1,0 +1,21 @@
+#include "interpreter.h"
+#include "log.h"
+using namespace InterpreterNP;
+int main(int argc, char* argv[]) {
+    try {
+        if(argc > 1){
+        std::cout<<"xxx";
+          CInterpreter _interpreter;
+        std::cout<<"xxx";
+          _interpreter.Init();
+        std::cout<<"xxx";
+          _interpreter.Run(argv[1]);
+        }
+        else
+          ESLLog.WriteError("No file for interpretation!");
+    }
+    catch (std::exception& e) {
+        ESLLog.WriteError(e.what());
+    }
+    return 0;
+}
