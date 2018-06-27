@@ -1,6 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "interpreter.h"
 #include <iostream>
+#include <fstream>
+#include <streambuf>
 using namespace std;
 namespace InterpreterNP{
 CInterpreter::CInterpreter(){}
@@ -18,16 +20,12 @@ bool CInterpreter::Init(){
     return true;
 }
 bool CInterpreter::Run(const std::string& file_name){
-    FILE *f = fopen(file_name.c_str(),"rt");
-    if(!f)
-        return false;
-    fseek(f, 0, SEEK_END); long len = ftell(f); fseek(f, 0, SEEK_SET);
-    string str;
-    str.resize(len);
-    fread(&str[0],1,len,f);
-    fclose(f);
-
-    _lexer.Lex(str);
+    std::ifstream _file(file_name);
+    if(!_file.is_open())
+     return false;
+    std::string _str((std::istreambuf_iterator<char>(_file)),
+                 std::istreambuf_iterator<char>());
+    _lexer.Lex(_str);
 //    _lexer.SaveTokens(std::cout);
     _syntaxer.SetTokBuf(_lexer.GetTokens());
     _syntaxer.Run();

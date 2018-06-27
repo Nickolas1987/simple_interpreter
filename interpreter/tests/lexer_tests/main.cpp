@@ -3,6 +3,8 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
+#include <streambuf>
 class TestLexer : public ::testing::Test{
 protected:
     void SetUp(){
@@ -17,19 +19,15 @@ protected:
 };
 
 TEST_F(TestLexer, test1){
-
-    FILE *f = fopen("../resourses/test_prog_2.txt","rt");
-    if(!f){
-        FAIL() << "no file for lex";
-        return ;
+    std::ifstream _file("../resourses/test_prog_2.txt");
+    if(!_file.is_open()){
+     FAIL() << "no such file for lexing";
+     return;
     }
-    fseek(f, 0, SEEK_END); long len = ftell(f); fseek(f, 0, SEEK_SET);
-    std::string str;
-    str.resize(len);
-    fread(&str[0],1,len,f);
-    fclose(f);
+    std::string _str((std::istreambuf_iterator<char>(_file)),
+                 std::istreambuf_iterator<char>());
+    _lexer.Lex(_str);
 
-   _lexer.Lex(str);
    _lexer.SaveTokens(std::cout);
 }
 
