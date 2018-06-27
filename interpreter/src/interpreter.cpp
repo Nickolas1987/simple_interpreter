@@ -13,6 +13,8 @@ bool CInterpreter::Init(){
     _syntaxer.SetResWords("while", std::bind(&CInterpreter::WhileFunc,this));
     _syntaxer.SetResWords("print", std::bind(&CInterpreter::PrintFunc,this));
     _syntaxer.SetResWords("input", std::bind(&CInterpreter::InputFunc,this));
+    _syntaxer.SetSkipingDeviders({" ", "\t", "\r", "\n"});
+    _syntaxer.SetSequencePointDevider({";"});
     return true;
 }
 bool CInterpreter::Run(const std::string& file_name){
@@ -41,14 +43,14 @@ void CInterpreter::PrintFunc(){
        if (tok.Type() == ttDevider) 
         continue;
        if (tok.Type() == ttStrConstant || tok.Type() == ttIntConstant || tok.Type() == ttDoubleConstant ) { 
-    std::cout << tok.Text();
+        std::cout << tok.Text() << std::endl;
         _syntaxer.GetToken();
        }
        else { /* if it is a expr */
         _syntaxer.PutBack();
         CTokenValue tok_val;
         _syntaxer.GetExp(tok_val);
-    std::cout << tok_val.asString();
+        std::cout << tok_val.asString() << std::endl;
        }
        if(_syntaxer.GetCurTokText() == ";")
         break;

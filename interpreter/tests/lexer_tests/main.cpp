@@ -18,7 +18,7 @@ protected:
 
 TEST_F(TestLexer, test1){
 
-    FILE *f = fopen("../resourses/test_prog.txt","rt");
+    FILE *f = fopen("../resourses/test_prog_2.txt","rt");
     if(!f){
         FAIL() << "no file for lex";
         return ;

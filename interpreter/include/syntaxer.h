@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <stack>
 #include "lexer.h"
@@ -22,6 +23,8 @@ public:
     std::string GetCurError(size_t ind);
     void SetResWords(const std::string&,const std::function<void()>&);
     void SetVariables(const std::string&, const CTokenValue&);
+    void SetSkipingDeviders(const std::unordered_set<std::string>&);
+    void SetSequencePointDevider(const std::unordered_set<std::string>&);
     //////work with cur token 
     E_TOKEN_TYPES GetCurTokType();
     std::string GetCurTokText();
@@ -54,5 +57,7 @@ private:
     std::unordered_map<std::string, CTokenValue> _variables;
     std::unordered_map<std::string, std::function<void()> > _res_words;
     std::stack<std::pair<int,int> > _cycle_stack;
+    std::unordered_set<std::string> _skiped_dev;
+    std::unordered_set<std::string> _seq_p_dev;
 };
 }

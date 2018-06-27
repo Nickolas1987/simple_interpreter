@@ -22,10 +22,16 @@ void CSyntaxer::SetResWords(const std::string& name,const std::function<void()>&
 void CSyntaxer::SetVariables(const std::string& name, const CTokenValue& val){
     _variables[name] = val;
 }
+void CSyntaxer::SetSkipingDeviders(const std::unordered_set<std::string>& val){
+    _skiped_dev = val;
+}
+void CSyntaxer::SetSequencePointDevider(const std::unordered_set<std::string>& val){
+    _seq_p_dev = val;
+}
 void CSyntaxer::Run(){
     do {
         GetToken();
-//        std::cout << "Cur tok :" << _cur_tok.Text() <<std::endl;
+        //std::cout << "Cur tok :" << _cur_tok.Text() <<std::endl;
         if(_cur_tok.Type() == ttVariable) {
             PutBack(); 
             Assignment(); 
@@ -73,7 +79,7 @@ void CSyntaxer::PutBack(){
    --_cur_tok_ind;
 }
 void CSyntaxer::SkipDevider(){
-   while(_cur_tok.Type() == ttDevider && (_cur_tok.Text() == " " || _cur_tok.Text() == "\n" || _cur_tok.Text() == "\r" || _cur_tok.Text() == "\t"))
+   while(_cur_tok.Type() == ttDevider && _skiped_dev.find(_cur_tok.Text()) != _skiped_dev.end())//(_cur_tok.Text() == " " || _cur_tok.Text() == "\n" || _cur_tok.Text() == "\r" || _cur_tok.Text() == "\t"))
        GetToken();
 }
 void CSyntaxer::Level_2(CTokenValue& result){ 
@@ -186,13 +192,14 @@ void CSyntaxer::Assignment(){
     GetToken();
     SkipDevider();
     
-     if(_cur_tok.Text() != "=") {
+     if(_cur_tok.Text() != "=" && _seq_p_dev.find(_cur_tok.Text()) == _seq_p_dev.end()) {
       ESLLog.WriteError( GetCurError(3).c_str());
       return;
      }
     
     /* get expression value */
-    GetExp(value);
+    if(_cur_tok.Text() == "=")
+      GetExp(value);
     /* set value*/
     _variables[var] = value;
 }

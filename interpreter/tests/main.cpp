@@ -1,4 +1,5 @@
 #include "lexer_tests/main.cpp"
+#include "syntaxer_tests/main.cpp"
 
 int main(int argc, char *argv[])
 {

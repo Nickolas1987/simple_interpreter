@@ -1,0 +1,5 @@
+A = "y";
+B = 10*2;
+C;
+print A;
+print B;
