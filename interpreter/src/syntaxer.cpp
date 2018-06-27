@@ -25,6 +25,7 @@ void CSyntaxer::SetVariables(const std::string& name, const CTokenValue& val){
 void CSyntaxer::Run(){
     do {
         GetToken();
+//        std::cout << "Cur tok :" << _cur_tok.Text() <<std::endl;
         if(_cur_tok.Type() == ttVariable) {
             PutBack(); 
             Assignment(); 

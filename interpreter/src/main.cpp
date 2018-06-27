@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
           _interpreter.Run(argv[1]);
         }
         else
-          ESLLog.WriteError("No file for interpretation!");
+          ESLLog.WriteMessage("No file for interpretation!");
     }
     catch (std::exception& e) {
         ESLLog.WriteError(e.what());

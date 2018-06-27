@@ -27,7 +27,7 @@ bool CLexer::Lex(const string& text){
     if (text.empty())
         MACRO_ERROR_RET("CLexer::Lex tryng to lex empty text", false);
  
-    unsigned prev_offset=-1;//previous pos
+    unsigned prev_offset = -1;//previous pos
     CToken   token;// current token
     //scan tokens
     do{
@@ -49,15 +49,12 @@ bool CLexer::Lex(const string& text){
      CToken fin_tok(ttFinish,"");
      _TokensBuffer.push_back(fin_tok);
     }
-
     return true;
 }
 CToken CLexer::SkanToken(const string& text){
     CToken ret;
     //separate symbols
     static const string delim = _Deviders + _Operators;
-    //pos of separ
-    const unsigned delimpos = text.find_first_of(delim, _OffSet);
  
     if(text[_OffSet] == '\0'){
         return CToken(ttFinish,"");
@@ -69,15 +66,19 @@ CToken CLexer::SkanToken(const string& text){
         SkipComment(text);
 
     SkipSpacing(text);
-   // If this is last lexem
+    //pos of separ
+    const unsigned delimpos = text.find_first_of(delim, _OffSet);
+    
+    if(_OffSet >= text.size())
+        return CToken(ttFinish,"");      
+    // If this is last lexem
     if(delimpos == text.npos){
         ret._Text = text.substr(_OffSet);
     }
     else{
-        ret._Text = text.substr(_OffSet,max(delimpos-_OffSet,unsigned(1)));
+        ret._Text = text.substr(_OffSet,max(delimpos - _OffSet,unsigned(1)));
         _OffSet = max(delimpos,_OffSet+1);
     }
-
     DefineTokenType(ret);
     return ret;
 }
@@ -127,21 +128,26 @@ void CLexer::DefineTokenType(CToken& token)const{
 CToken CLexer::SkanStringConstant(const string& text){
     const unsigned pos = text.find_first_of('"',++_OffSet); //find ended "
  
-    if(pos==text.npos)
+    if(pos == text.npos)
         MACRO_ERROR_RET("CLexer::SkanStringConstant: '' expected",ErrorToken);
 
     const unsigned begin = _OffSet;
     _OffSet = pos+1;
  
-    return CToken(ttStrConstant, string(text, begin, pos-begin));
+    return CToken(ttStrConstant, string(text, begin, pos - begin));
 }
 void CLexer::SkipSpacing(const string& text){
     if(!text[_OffSet] || !strchr(" \t\r\n", text[_OffSet]))
         return;
-    _OffSet = text.find_first_not_of(" \t\r\n", _OffSet) - 1;
+    while(_OffSet < text.size() && strchr(" \t\r\n", text[_OffSet]))++_OffSet;
+    --_OffSet;
 }
 void CLexer::SkipComment(const string& text){
-    while(text[_OffSet]=='%')
-        _OffSet = text.find_first_of("\n", _OffSet) + 1;
+    while(text[_OffSet]=='%'){
+     _OffSet = text.find_first_of("\n", _OffSet);
+     if(_OffSet == text.npos)
+       break;
+     ++_OffSet;
+    }
 }
 }

@@ -26,6 +26,7 @@ bool CInterpreter::Run(const std::string& file_name){
     fclose(f);
 
     _lexer.Lex(str);
+//    _lexer.SaveTokens(std::cout);
     _syntaxer.SetTokBuf(_lexer.GetTokens());
     _syntaxer.Run();
 
