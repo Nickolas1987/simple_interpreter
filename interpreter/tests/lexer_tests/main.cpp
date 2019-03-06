@@ -8,10 +8,12 @@
 class TestLexer : public ::testing::Test{
 protected:
     void SetUp(){
-      std::string data[]={"if","while","print","input",
-               "+", "-", "=", "/", "*", ">", "<", "~", "!", "|", "&",
-               " ", ";", "(", ")", ",", "{", "}", "\n", "\t", "\r", "%"};
-      _lexer.Init(data,4,11,11);
+      std::string data[]={"if","while","print","input","exit",
+                   "count",
+                   "+", "-", "=", "/", "*", "^", ">", "<", "==", "!=", ">=", "<=", "~", "!", "||", "&&",
+                   " ", ";", "(", ")", ",", "{", "}", "[", "]", "\n", "\t", "\r", "%"
+                  };
+      _lexer.Init(data, 5, 1, 16, 13);
     }
     void TearDown(){
     }

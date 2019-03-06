@@ -1,5 +1,5 @@
-#include "interpreter.h"
-#include "log.h"
+#include <interpreter.h>
+#include <iostream>
 using namespace InterpreterNP;
 int main(int argc, char* argv[]) {
     try {
@@ -9,10 +9,10 @@ int main(int argc, char* argv[]) {
           _interpreter.Run(argv[1]);
         }
         else
-          ESLLog.WriteMessage("No file for interpretation!");
+          std::cout << "No file for interpretation!" << std::endl;
     }
     catch (std::exception& e) {
-        ESLLog.WriteError(e.what());
+        std::cout << e.what() << std::endl;
     }
     return 0;
 }

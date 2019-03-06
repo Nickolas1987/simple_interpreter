@@ -1,11 +1,11 @@
 #pragma once
 
 #include <string>
-#include "token_types.h"
+#include <token_types.h>
 namespace InterpreterNP {
-    class CLexer;
+class CLexer;
 
-    class CToken {
+class CToken {
         friend class CLexer;
     public:
         E_TOKEN_TYPES  Type(void)const { return _Type; }
@@ -20,5 +20,5 @@ namespace InterpreterNP {
     private:
         E_TOKEN_TYPES  _Type;
         std::string    _Text;
-    };
+};
 }

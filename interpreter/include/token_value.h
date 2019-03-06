@@ -1,6 +1,8 @@
 #pragma once
-#include "token_value_types.h"
+#include <token_value_types.h>
 #include <string>
+#include <memory>
+#include <unordered_map>
 namespace InterpreterNP{
 class CTokenValue{
 public:
@@ -23,9 +25,15 @@ public:
     bool operator == (const CTokenValue&);
     bool operator < (const CTokenValue&);
     bool operator > (const CTokenValue&);
+    CTokenValue& operator[](const std::string&);
+    CTokenValue& operator[](int);
+    const CTokenValue& operator[](const std::string&) const;
+    const CTokenValue& operator[](int) const;
+    size_t size() const;
 private:
     E_TOKEN_VALUE_TYPES _cur_type;
     std::string _value;
     std::string _name;
+    std::unordered_map<std::string, std::shared_ptr<CTokenValue>> _values;
 };
 }

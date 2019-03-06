@@ -1,0 +1,6 @@
+i = 0;
+while(i < count(z)){
+  z[i] = z[i]*(i+1);
+  x = x*z[i];
+  i = i+1;
+}

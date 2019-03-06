@@ -1,8 +1,8 @@
-#include "lexer.h"
-#include "log.h"
+#include <lexer.h>
 #include <ctype.h>
 #include <algorithm>
 #include <string.h>
+#include <stdexcept>
 using namespace std;
 
 namespace InterpreterNP{
@@ -10,7 +10,7 @@ CToken ErrorToken(ttUnknown, "ErrorToken");
 
 void CLexer::SaveTokens(ostream& os)const{
     if(os.bad())
-        MACRO_ERROR_RET_VOID("CLexer::SaveTokens error");
+        throw runtime_error("CLexer::SaveTokens error");
  
     string types[] = {"ttResWord",     "ttOperator", "ttStrConstant",
                       "ttIntConstant", "ttDoubleConstant", "ttVariable", "ttFunction",
@@ -25,14 +25,14 @@ bool CLexer::Lex(const string& text){
     _TokensBuffer.clear();
  
     if (text.empty())
-        MACRO_ERROR_RET("CLexer::Lex tryng to lex empty text", false);
+        throw std::runtime_error("CLexer::Lex tryng to lex empty text");
  
     unsigned prev_offset = -1;//previous pos
     CToken   token;// current token
     //scan tokens
     do{
         if(prev_offset==_OffSet)
-            MACRO_ERROR_RET("CLexer::Lex error. Possibly end missed",false);
+            throw std::runtime_error("CLexer::Lex error. Possibly end missed");
  
         prev_offset = _OffSet;
         token       = SkanToken(text);
@@ -51,10 +51,13 @@ bool CLexer::Lex(const string& text){
     }
     return true;
 }
+const TokensArray& CLexer::GetTokens(void) const { 
+    return _TokensBuffer; 
+}
 CToken CLexer::SkanToken(const string& text){
     CToken ret;
     //separate symbols
-    static const string delim = _Deviders + _Operators;
+    //static const string delim = _Deviders + _Operators;
  
     if(text[_OffSet] == '\0'){
         return CToken(ttFinish,"");
@@ -67,8 +70,27 @@ CToken CLexer::SkanToken(const string& text){
 
     SkipSpacing(text);
     //pos of separ
-    const unsigned delimpos = text.find_first_of(delim, _OffSet);
+    unsigned delimpos = text.npos, tmp_pos = text.npos, delimsize = 1;//text.find_first_of(delim, _OffSet);
     
+    for (auto iter : _Deviders) {
+        tmp_pos = text.find(iter, _OffSet);
+        if (tmp_pos != text.npos) {
+            if ((delimpos > tmp_pos) || ((delimpos == tmp_pos) && (delimsize < iter.size()))) {
+                delimpos = tmp_pos;
+                delimsize = iter.size();
+            }
+        }
+    }
+    for (auto iter : _Operators) {
+        tmp_pos = text.find(iter, _OffSet);
+        if (tmp_pos != text.npos) {
+            if ((delimpos > tmp_pos) || ((delimpos == tmp_pos) && (delimsize < iter.size()))) {
+                delimpos = tmp_pos;
+                delimsize = iter.size();
+            }
+        }
+    }
+
     if(_OffSet >= text.size())
         return CToken(ttFinish,"");      
     // If this is last lexem
@@ -76,8 +98,8 @@ CToken CLexer::SkanToken(const string& text){
         ret._Text = text.substr(_OffSet);
     }
     else{
-        ret._Text = text.substr(_OffSet,max(delimpos - _OffSet,unsigned(1)));
-        _OffSet = max(delimpos,_OffSet+1);
+        ret._Text = text.substr(_OffSet, (delimpos == _OffSet) ? delimsize : (delimpos - _OffSet));//text.substr(_OffSet,max(delimpos - _OffSet,unsigned(delimsize)));
+        _OffSet = (delimpos == _OffSet) ? (_OffSet + delimsize) : (delimpos);//max(delimpos,_OffSet+delimsize);
     }
     DefineTokenType(ret);
     return ret;
@@ -85,29 +107,37 @@ CToken CLexer::SkanToken(const string& text){
 void  CLexer::Init(//array of strings data
                    const string* data,
                    unsigned rwc,  // count of reserved words
+                   unsigned fnc,  // count of func
                    unsigned opc,  //count of operators
                    unsigned dvc)  //count of deviders
 {
-    _ResWordsArray.resize(rwc);
     const string* rwend = data + rwc;
-    copy(data,rwend,_ResWordsArray.begin());
+    for (unsigned i = 0; i < rwc; ++i)
+        _ResWordsArray.insert(data[i]);
  
-    const string* opend = rwend + opc;
+    const string* fend = rwend + fnc;
+    for (unsigned i = 0; i < fnc; ++i)
+        _FuncArray.insert(rwend[i]);
+
+    const string* opend = fend + opc;
     for(unsigned i=0;i < opc; ++i)
-        _Operators += rwend[i];
+        _Operators.insert(fend[i]);
  
     for(unsigned i=0;i < dvc; ++i)
-        _Deviders += opend[i];
+        _Deviders.insert(opend[i]);
 }
 void CLexer::DefineTokenType(CToken& token)const{
-    if(_Deviders.find(token.Text()) != _Deviders.npos){
+    if(_Deviders.find(token.Text()) != _Deviders.end()){
         token._Type = ttDevider;
     }
-    else if(_Operators.find(token.Text()) != _Operators.npos){
+    else if(_Operators.find(token.Text()) != _Operators.end()){
         token._Type = ttOperator;
     }
-    else if(find(_ResWordsArray.begin(),_ResWordsArray.end(),token.Text()) != _ResWordsArray.end()){
+    else if(_ResWordsArray.find(token.Text()) != _ResWordsArray.end()){
         token._Type = ttResWord;
+    }
+    else if (_FuncArray.find(token.Text()) != _FuncArray.end()) {
+        token._Type = ttFunction;
     }
     else{
         unsigned i;
@@ -129,7 +159,7 @@ CToken CLexer::SkanStringConstant(const string& text){
     const unsigned pos = text.find_first_of('"',++_OffSet); //find ended "
  
     if(pos == text.npos)
-        MACRO_ERROR_RET("CLexer::SkanStringConstant: '' expected",ErrorToken);
+        throw runtime_error("CLexer::SkanStringConstant: '' expected");
 
     const unsigned begin = _OffSet;
     _OffSet = pos+1;

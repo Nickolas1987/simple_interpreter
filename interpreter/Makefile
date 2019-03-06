@@ -1,7 +1,7 @@
 CC=g++
 CXXFLAGS=-c -pthread -std=c++1y -Wall -fPIC  -pthread
 INC=-I./include
-SOURCES= ./src/main.cpp ./src/log.cpp ./src/interpreter.cpp ./src/syntaxer.cpp ./src/lexer.cpp ./src/token.cpp ./src/token_value.cpp
+SOURCES= ./src/token_value.cpp ./src/token.cpp ./src/syntaxer.cpp ./src/lexer.cpp ./src/interpreter.cpp ./src/main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=simple_interpreter
 

@@ -1,23 +1,43 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "interpreter.h"
+#include <interpreter.h>
 #include <iostream>
 #include <fstream>
 #include <streambuf>
+#include <stdexcept>
 using namespace std;
 namespace InterpreterNP{
 CInterpreter::CInterpreter(){}
-bool CInterpreter::Init(){
-    string data[]={"if","while","print","input",
-               "+", "-", "=", "/", "*", ">", "<", "~", "!", "|", "&",
-               " ", ";", "(", ")", ",", "{", "}", "\n", "\t", "\r", "%"};
-    _lexer.Init(data,4,11,11);
+bool CInterpreter::Init(const std::unordered_map<std::string, CTokenValue>& variables){
+    string data[]={"if","while","print","input","exit",
+                   "count",
+                   "+", "-", "=", "/", "*", "^", ">", "<", "==", "!=", ">=", "<=", "~", "!", "||", "&&",
+                   " ", ";", "(", ")", ",", "{", "}", "[", "]", "\n", "\t", "\r", "%"
+                  };
+    _lexer.Init(data, 5, 1, 16, 13);
     _syntaxer.SetResWords("if", std::bind(&CInterpreter::IfFunc,this));
     _syntaxer.SetResWords("while", std::bind(&CInterpreter::WhileFunc,this));
     _syntaxer.SetResWords("print", std::bind(&CInterpreter::PrintFunc,this));
     _syntaxer.SetResWords("input", std::bind(&CInterpreter::InputFunc,this));
+    _syntaxer.SetResWords("exit", std::bind(&CInterpreter::ExitFunc, this));
+    _syntaxer.SetFunction("count", [](const CTokenValue& val)->CTokenValue {
+        return CTokenValue(std::to_string(val.size()), E_TOKEN_VALUE_TYPES::tvInt); 
+    });
     _syntaxer.SetSkipingDeviders({" ", "\t", "\r", "\n"});
     _syntaxer.SetSequencePointDevider({";"});
+    _variables = variables;
+    if(!_variables.empty()){
+      for(auto iter : _variables){
+        _syntaxer.SetVariables(iter.first, iter.second);
+      }
+    }
     return true;
+}
+std::unordered_map<std::string, CTokenValue> CInterpreter::GetVariables() const{
+    std::unordered_map<std::string, CTokenValue> res;
+    for(auto iter : _variables){
+      res.insert(std::make_pair(iter.first, _syntaxer.GetVariableByName(iter.first)));
+    }
+    return res;
 }
 bool CInterpreter::Run(const std::string& file_name){
     std::ifstream _file(file_name);
@@ -32,6 +52,9 @@ bool CInterpreter::Run(const std::string& file_name){
 
   return true;
 }
+void CInterpreter::ExitFunc() {
+    while (_syntaxer.GetToken().Type() != ttFinish);
+}
 void CInterpreter::PrintFunc(){
     CToken tok;
     do {
@@ -41,14 +64,14 @@ void CInterpreter::PrintFunc(){
        if (tok.Type() == ttDevider) 
         continue;
        if (tok.Type() == ttStrConstant || tok.Type() == ttIntConstant || tok.Type() == ttDoubleConstant ) { 
-        std::cout << tok.Text() << std::endl;
+        std::cout << tok.Text();
         _syntaxer.GetToken();
        }
        else { /* if it is a expr */
         _syntaxer.PutBack();
         CTokenValue tok_val;
         _syntaxer.GetExp(tok_val);
-        std::cout << tok_val.asString() << std::endl;
+        std::cout << tok_val.asString();
        }
        if(_syntaxer.GetCurTokText() == ";")
         break;
@@ -71,7 +94,7 @@ void CInterpreter::InputFunc(){
      _syntaxer.GetToken();
      _syntaxer.SkipDevider();
      if (_syntaxer.GetCurTokText() != ",") {
-         ESLLog.WriteError( _syntaxer.GetCurError(5).c_str());
+         throw runtime_error( _syntaxer.GetCurError(5).c_str());
          return;
      }
      _syntaxer.GetToken();
@@ -89,43 +112,17 @@ void CInterpreter::WhileFunc(){
      if(_syntaxer.IsCycleStackEmpty() || _syntaxer.GetCycleStackTop().first != _syntaxer.GetCurTokIndex() - 1)
                   _syntaxer.PushCycleStack(std::make_pair(_syntaxer.GetCurTokIndex() - 1, -1));
      bool cond = false;
-     std::string op;
-     CTokenValue val_left, val_right;
+     CTokenValue val_tok;
      _syntaxer.SkipDevider();
 
      if(_syntaxer.GetToken().Text() != "("){
         throw std::runtime_error("incorrect operator while syntax");
         return;
      }
-     _syntaxer.GetExp(val_left); /* get left expr */
+     _syntaxer.PutBack();
+     _syntaxer.GetExp(val_tok); 
      _syntaxer.SkipDevider();
-
-     op = _syntaxer.GetToken().Text(); /* get operator  */
-     if(op[0] != ')'){
-       _syntaxer.SkipDevider();
-       _syntaxer.GetExp(val_right);  /* get right expr */
-         /* get result */
-       _syntaxer.SkipDevider();
-
-       if(_syntaxer.GetToken().Text() != ")"){
-        throw std::runtime_error("incorrect operator while syntax");
-        return;
-       }
-     }
-     switch(op[0]) {
-       case '=':
-         if(val_left==val_right) cond=true;
-           break;
-       case '<':
-           if(val_left < val_right) cond = true;
-            break;
-       case '>':
-           if(val_left > val_right) cond=true;
-           break;
-       case ')':
-           if(val_left.asInt()) cond = true;
-           break;
-     }
+     cond = static_cast<bool>(val_tok.asInt());
 
      if(cond){
          _syntaxer.GetToken();
@@ -149,7 +146,22 @@ void CInterpreter::WhileFunc(){
         _syntaxer.SkipDevider();
         _syntaxer.PopCycleStack();
         if(_syntaxer.GetCurTokText() == "{"){
-            while(_syntaxer.GetToken().Text() != "}");
+            int count_open = 1, count_close = 0;
+            while (true) {
+                auto tok = _syntaxer.GetToken();
+                if (tok.Type() == ttFinish) {
+                    throw std::runtime_error("incorrect count }");
+                }
+                if (tok.Type() == ttDevider && tok.Text() == "{") {
+                    ++count_open;
+                }
+                if (tok.Type() == ttDevider && tok.Text() == "}") {
+                    ++count_close;
+                }
+                if (count_open == count_close) {
+                    break;
+                }
+            }
         }
         else
             throw std::runtime_error("incorrect operator while syntax");
@@ -157,51 +169,51 @@ void CInterpreter::WhileFunc(){
 }
 void CInterpreter::IfFunc(){
      bool cond = false;
-     std::string op;
-     CTokenValue val_left, val_right;
+     CTokenValue val_tok;
      _syntaxer.SkipDevider();
      if(_syntaxer.GetToken().Text() != "("){
-        ESLLog.WriteError("incorrect operator if syntax");
+        throw runtime_error("incorrect operator if syntax");
+     }
+     _syntaxer.PutBack();
+     _syntaxer.GetExp(val_tok);
+
+     cond = static_cast<bool>(val_tok.asInt());
+     if (cond) {
         return;
      }
-     _syntaxer.GetExp(val_left); /* get left exp */
-     _syntaxer.SkipDevider();
-     op = _syntaxer.GetToken().Text(); /* operator  */
-     if(op[0] != ')'){
-       _syntaxer.SkipDevider();
-       _syntaxer.GetExp(val_right);  /* right exp */
-         /* result */
-       _syntaxer.SkipDevider();
-       if(_syntaxer.GetToken().Text() != ")"){
-        ESLLog.WriteError("incorrect operator if syntax");
-        return;
-       }
-     }
-     cond=0;
-     switch(op[0]) {
-       case '=':
-         if(val_left == val_right) cond=true;
-           break;
-       case '<':
-           if(val_left < val_right) cond = true;
-            break;
-       case '>':
-           if(val_left > val_right) cond=true;
-           break;
-       case ')':
-           if(val_left.asInt()) cond = true;
-           break;
-     }
-     if(cond) 
-           return;
-     else{  
+     else {
         _syntaxer.GetToken();
         _syntaxer.SkipDevider();   /* If not true, start with str after '}'  */
-        if(_syntaxer.GetCurTokText() == "{"){
-            while(_syntaxer.GetToken().Text() != "}");
+        if (_syntaxer.GetCurTokText() == "{") {
+            int count_open = 1, count_close = 0;
+            while (true) {
+                auto tok = _syntaxer.GetToken();
+                if (tok.Type() == ttFinish) {
+                    throw std::runtime_error("incorrect count }");
+                }
+                if (tok.Type() == ttDevider && tok.Text() == "{") {
+                    ++count_open;
+                }
+                if (tok.Type() == ttDevider && tok.Text() == "}") {
+                    ++count_close;
+                }
+                if (count_open == count_close) {
+                    break;
+                }
+            }
         }
-        else
-            while (_syntaxer.GetToken().Text() != ";");
+        else{
+            while (true) {
+                auto tok = _syntaxer.GetToken();
+                if (tok.Type() == ttFinish) {
+                    throw std::runtime_error("incorrect if end");
+                }
+                if (tok.Type() == ttDevider && tok.Text() == ";") {
+                    break;
+                }
+            }
+        }
      }
+
 }
 }
