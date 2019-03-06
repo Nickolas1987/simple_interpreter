@@ -140,7 +140,7 @@ const CTokenValue& CTokenValue::operator[](int key) const {
     std::string key_str = std::to_string(key);
     return *(_values.at(key_str).get());
 }
-size_t CTokenValue::size() const {
+size_t CTokenValue::GetSize() const {
     return _values.size();
 }
 }

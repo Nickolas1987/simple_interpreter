@@ -8,8 +8,8 @@ class CLexer;
 class CToken {
         friend class CLexer;
     public:
-        E_TOKEN_TYPES  Type(void)const { return _Type; }
-        std::string    Text(void)const { return _Text; }
+        E_TOKEN_TYPES  Type(void)const { return _type; }
+        std::string    Text(void)const { return _text; }
 
         CToken(void);
         CToken(const CToken&);
@@ -18,7 +18,7 @@ class CToken {
         CToken& operator = (const CToken& other);
         bool operator == (const CToken& other)const;
     private:
-        E_TOKEN_TYPES  _Type;
-        std::string    _Text;
+        E_TOKEN_TYPES  _type;
+        std::string    _text;
 };
 }

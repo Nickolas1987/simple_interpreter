@@ -20,7 +20,7 @@ bool CInterpreter::Init(const std::unordered_map<std::string, CTokenValue>& vari
     _syntaxer.SetResWords("input", std::bind(&CInterpreter::InputFunc,this));
     _syntaxer.SetResWords("exit", std::bind(&CInterpreter::ExitFunc, this));
     _syntaxer.SetFunction("count", [](const CTokenValue& val)->CTokenValue {
-        return CTokenValue(std::to_string(val.size()), E_TOKEN_VALUE_TYPES::tvInt); 
+        return CTokenValue(std::to_string(val.GetSize()), E_TOKEN_VALUE_TYPES::tvInt); 
     });
     _syntaxer.SetSkipingDeviders({" ", "\t", "\r", "\n"});
     _syntaxer.SetSequencePointDevider({";"});

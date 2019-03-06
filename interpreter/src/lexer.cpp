@@ -16,13 +16,13 @@ void CLexer::SaveTokens(ostream& os)const{
                       "ttIntConstant", "ttDoubleConstant", "ttVariable", "ttFunction",
                       "ttDevider",     "ttUnknown", "ttFinish"};
  
-    for(unsigned i=0;i<_TokensBuffer.size();++i)
-        os<<types[_TokensBuffer[i].Type()]<<
-            ": '"<<_TokensBuffer[i].Text()<<"'"<<endl;
+    for(unsigned i=0;i<_tokens_buffer.size();++i)
+        os<<types[_tokens_buffer[i].Type()]<<
+            ": '"<<_tokens_buffer[i].Text()<<"'"<<endl;
 }
 bool CLexer::Lex(const string& text){
-    _OffSet = 0;
-    _TokensBuffer.clear();
+    _offSet = 0;
+    _tokens_buffer.clear();
  
     if (text.empty())
         throw std::runtime_error("CLexer::Lex tryng to lex empty text");
@@ -31,49 +31,49 @@ bool CLexer::Lex(const string& text){
     CToken   token;// current token
     //scan tokens
     do{
-        if(prev_offset==_OffSet)
+        if(prev_offset==_offSet)
             throw std::runtime_error("CLexer::Lex error. Possibly end missed");
  
-        prev_offset = _OffSet;
+        prev_offset = _offSet;
         token       = SkanToken(text);
 
         if(token==ErrorToken)
             return false;
  
-        _TokensBuffer.push_back(token);
+        _tokens_buffer.push_back(token);
          if(token.Type() == ttFinish)
             break;
-    }while(_OffSet < text.length());
+    }while(_offSet < text.length());
 
-    if(_TokensBuffer.back().Type() != ttFinish){
+    if(_tokens_buffer.back().Type() != ttFinish){
      CToken fin_tok(ttFinish,"");
-     _TokensBuffer.push_back(fin_tok);
+     _tokens_buffer.push_back(fin_tok);
     }
     return true;
 }
 const TokensArray& CLexer::GetTokens(void) const { 
-    return _TokensBuffer; 
+    return _tokens_buffer; 
 }
 CToken CLexer::SkanToken(const string& text){
     CToken ret;
     //separate symbols
     //static const string delim = _Deviders + _Operators;
  
-    if(text[_OffSet] == '\0'){
+    if(text[_offSet] == '\0'){
         return CToken(ttFinish,"");
     }
-    if(text[_OffSet] == '"')
+    if(text[_offSet] == '"')
         return SkanStringConstant(text);
 
-    if(text[_OffSet] == '%')
+    if(text[_offSet] == '%')
         SkipComment(text);
 
     SkipSpacing(text);
     //pos of separ
     unsigned delimpos = text.npos, tmp_pos = text.npos, delimsize = 1;//text.find_first_of(delim, _OffSet);
     
-    for (auto iter : _Deviders) {
-        tmp_pos = text.find(iter, _OffSet);
+    for (auto iter : _deviders) {
+        tmp_pos = text.find(iter, _offSet);
         if (tmp_pos != text.npos) {
             if ((delimpos > tmp_pos) || ((delimpos == tmp_pos) && (delimsize < iter.size()))) {
                 delimpos = tmp_pos;
@@ -81,8 +81,8 @@ CToken CLexer::SkanToken(const string& text){
             }
         }
     }
-    for (auto iter : _Operators) {
-        tmp_pos = text.find(iter, _OffSet);
+    for (auto iter : _operators) {
+        tmp_pos = text.find(iter, _offSet);
         if (tmp_pos != text.npos) {
             if ((delimpos > tmp_pos) || ((delimpos == tmp_pos) && (delimsize < iter.size()))) {
                 delimpos = tmp_pos;
@@ -91,15 +91,15 @@ CToken CLexer::SkanToken(const string& text){
         }
     }
 
-    if(_OffSet >= text.size())
+    if(_offSet >= text.size())
         return CToken(ttFinish,"");      
     // If this is last lexem
     if(delimpos == text.npos){
-        ret._Text = text.substr(_OffSet);
+        ret._text = text.substr(_offSet);
     }
     else{
-        ret._Text = text.substr(_OffSet, (delimpos == _OffSet) ? delimsize : (delimpos - _OffSet));//text.substr(_OffSet,max(delimpos - _OffSet,unsigned(delimsize)));
-        _OffSet = (delimpos == _OffSet) ? (_OffSet + delimsize) : (delimpos);//max(delimpos,_OffSet+delimsize);
+        ret._text = text.substr(_offSet, (delimpos == _offSet) ? delimsize : (delimpos - _offSet));//text.substr(_OffSet,max(delimpos - _OffSet,unsigned(delimsize)));
+        _offSet = (delimpos == _offSet) ? (_offSet + delimsize) : (delimpos);//max(delimpos,_OffSet+delimsize);
     }
     DefineTokenType(ret);
     return ret;
@@ -113,71 +113,71 @@ void  CLexer::Init(//array of strings data
 {
     const string* rwend = data + rwc;
     for (unsigned i = 0; i < rwc; ++i)
-        _ResWordsArray.insert(data[i]);
+        _res_words_array.insert(data[i]);
  
     const string* fend = rwend + fnc;
     for (unsigned i = 0; i < fnc; ++i)
-        _FuncArray.insert(rwend[i]);
+        _func_array.insert(rwend[i]);
 
     const string* opend = fend + opc;
     for(unsigned i=0;i < opc; ++i)
-        _Operators.insert(fend[i]);
+        _operators.insert(fend[i]);
  
     for(unsigned i=0;i < dvc; ++i)
-        _Deviders.insert(opend[i]);
+        _deviders.insert(opend[i]);
 }
 void CLexer::DefineTokenType(CToken& token)const{
-    if(_Deviders.find(token.Text()) != _Deviders.end()){
-        token._Type = ttDevider;
+    if(_deviders.find(token._text) != _deviders.end()){
+        token._type = ttDevider;
     }
-    else if(_Operators.find(token.Text()) != _Operators.end()){
-        token._Type = ttOperator;
+    else if(_operators.find(token._text) != _operators.end()){
+        token._type = ttOperator;
     }
-    else if(_ResWordsArray.find(token.Text()) != _ResWordsArray.end()){
-        token._Type = ttResWord;
+    else if(_res_words_array.find(token._text) != _res_words_array.end()){
+        token._type = ttResWord;
     }
-    else if (_FuncArray.find(token.Text()) != _FuncArray.end()) {
-        token._Type = ttFunction;
+    else if (_func_array.find(token._text) != _func_array.end()) {
+        token._type = ttFunction;
     }
     else{
         unsigned i;
-        for(i = 0; i < token._Text.length(); ++i)
-            if(!isdigit(token.Text()[i]) && token.Text()[i] != '.')
+        for(i = 0; i < token._text.length(); ++i)
+            if(!isdigit(token._text[i]) && token._text[i] != '.')
                 break;
  
-        if(i==token.Text().length()){
-            if(token.Text().find('.') != std::string::npos)
-             token._Type = ttDoubleConstant;
+        if(i==token._text.length()){
+            if(token._text.find('.') != std::string::npos)
+             token._type = ttDoubleConstant;
             else
-             token._Type = ttIntConstant;
+             token._type = ttIntConstant;
         }
         else
-            token._Type = ttVariable;
+            token._type = ttVariable;
     }
 }
 CToken CLexer::SkanStringConstant(const string& text){
-    const unsigned pos = text.find_first_of('"',++_OffSet); //find ended "
+    const unsigned pos = text.find_first_of('"',++_offSet); //find ended "
  
     if(pos == text.npos)
         throw runtime_error("CLexer::SkanStringConstant: '' expected");
 
-    const unsigned begin = _OffSet;
-    _OffSet = pos+1;
+    const unsigned begin = _offSet;
+    _offSet = pos+1;
  
     return CToken(ttStrConstant, string(text, begin, pos - begin));
 }
 void CLexer::SkipSpacing(const string& text){
-    if(!text[_OffSet] || !strchr(" \t\r\n", text[_OffSet]))
+    if(!text[_offSet] || !strchr(" \t\r\n", text[_offSet]))
         return;
-    while(_OffSet < text.size() && strchr(" \t\r\n", text[_OffSet]))++_OffSet;
-    --_OffSet;
+    while(_offSet < text.size() && strchr(" \t\r\n", text[_offSet]))++_offSet;
+    --_offSet;
 }
 void CLexer::SkipComment(const string& text){
-    while(text[_OffSet]=='%'){
-     _OffSet = text.find_first_of("\n", _OffSet);
-     if(_OffSet == text.npos)
+    while(text[_offSet]=='%'){
+     _offSet = text.find_first_of("\n", _offSet);
+     if(_offSet == text.npos)
        break;
-     ++_OffSet;
+     ++_offSet;
     }
 }
 }

@@ -34,7 +34,7 @@ TEST_F(TestSyntaxer, test2){
      }
      else{
        size_t count = 0;
-       while(count < iter.second.size()){
+       while(count < iter.second.GetSize()){
          std::cout << iter.first << " " << iter.second[count].asString() << std::endl;
          ++count;
        }
@@ -52,7 +52,7 @@ TEST_F(TestSyntaxer, test2){
      }
      else{
        size_t count = 0;
-       while(count < iter.second.size()){
+       while(count < iter.second.GetSize()){
          std::cout << iter.first << " " << iter.second[count].asString() << std::endl;
          ++count;
        }

@@ -29,7 +29,7 @@ public:
     CTokenValue& operator[](int);
     const CTokenValue& operator[](const std::string&) const;
     const CTokenValue& operator[](int) const;
-    size_t size() const;
+    size_t GetSize() const;
 private:
     E_TOKEN_VALUE_TYPES _cur_type;
     std::string _value;

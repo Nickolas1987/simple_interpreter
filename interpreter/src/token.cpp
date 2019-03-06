@@ -2,18 +2,18 @@
 
 using namespace std;
 namespace InterpreterNP {
-    CToken::CToken(void) : _Type(ttUnknown) {};
-    CToken::CToken(const CToken& other) : _Type(other._Type), _Text(other._Text) {};
+    CToken::CToken(void) : _type(ttUnknown) {};
+    CToken::CToken(const CToken& other) : _type(other._type), _text(other._text) {};
     CToken::CToken(E_TOKEN_TYPES type, const string& text) :
-        _Type(type), _Text(text) {};
+        _type(type), _text(text) {};
     CToken& CToken::operator=(const CToken& other) {
         if (&other != this) {
-            _Type = other._Type;
-            _Text = other._Text;
+            _type = other._type;
+            _text = other._text;
         }
         return *this;
     }
     bool CToken::operator==(const CToken& other)const {
-        return _Type == other._Type && _Text == other._Text;
+        return _type == other._type && _text == other._text;
     }
 }
