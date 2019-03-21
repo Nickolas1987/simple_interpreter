@@ -27,6 +27,7 @@ public:
     void SetSkipingDeviders(const std::unordered_set<std::string>&);
     void SetSequencePointDevider(const std::unordered_set<std::string>&);
     //////work with cur token 
+    void SetToLabel(const std::string&);
     E_TOKEN_TYPES GetCurTokType();
     std::string GetCurTokText();
     std::string GetTokByIndexText(size_t);

@@ -7,6 +7,29 @@ CTokenValue::CTokenValue():_cur_type(tvString){
 CTokenValue::CTokenValue(const CTokenValue& val):_cur_type(val._cur_type),_value(val._value), _values(val._values){
 }
 CTokenValue::CTokenValue(const std::string& val, E_TOKEN_VALUE_TYPES type):_cur_type(type),_value(val){
+    if (_cur_type == E_TOKEN_VALUE_TYPES::tvDouble) {
+        auto tmp = atof(_value.c_str());
+        _value = std::to_string(tmp);
+        if (_value.find('.') != _value.npos) {
+            size_t cut_pos = 0;
+            for (auto iter = _value.rbegin(); iter != _value.rend(); ++iter) {
+                if (*iter != '0' && *iter != '.') {
+                    break;
+                }
+                else if (*iter == '.') {
+                    ++cut_pos;
+                    break;
+                }
+                else {
+                    ++cut_pos;
+                }
+            }
+            _value = _value.substr(0, _value.size() - cut_pos);
+        }
+    }
+    else if (_cur_type == E_TOKEN_VALUE_TYPES::tvInt) {
+        _value = std::to_string(atoi(_value.c_str()));
+    }
 }
 CTokenValue& CTokenValue::operator=(const CTokenValue& val){
     if(this != &val){

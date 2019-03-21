@@ -1,0 +1,7 @@
+i=10;
+if(i>5){
+  goto lab;
+}
+print "After if";
+lab:
+print "Label";

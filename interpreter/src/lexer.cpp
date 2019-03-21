@@ -13,7 +13,7 @@ void CLexer::SaveTokens(ostream& os)const{
         throw runtime_error("CLexer::SaveTokens error");
  
     string types[] = {"ttResWord",     "ttOperator", "ttStrConstant",
-                      "ttIntConstant", "ttDoubleConstant", "ttVariable", "ttFunction",
+                      "ttIntConstant", "ttDoubleConstant", "ttVariable", "ttFunction", "ttLabel",
                       "ttDevider",     "ttUnknown", "ttFinish"};
  
     for(unsigned i=0;i<_tokens_buffer.size();++i)
@@ -151,6 +151,8 @@ void CLexer::DefineTokenType(CToken& token)const{
             else
              token._type = ttIntConstant;
         }
+        else if (token._text.back() == ':')
+            token._type = ttLabel;
         else
             token._type = ttVariable;
     }

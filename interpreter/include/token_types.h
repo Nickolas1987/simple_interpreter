@@ -8,7 +8,8 @@ enum E_TOKEN_TYPES
     ttIntConstant,
     ttDoubleConstant,
     ttVariable,    
-    ttFunction,    
+    ttFunction,
+    ttLabel,
     ttDevider,     
     ttUnknown,      
     ttFinish       

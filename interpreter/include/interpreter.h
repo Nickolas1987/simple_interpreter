@@ -20,6 +20,7 @@ protected:
     void IfFunc();
     void WhileFunc();
     void ExitFunc();
+    void GotoFunc();
     CLexer _lexer;
     CSyntaxer _syntaxer;
     std::unordered_map<std::string, CTokenValue> _variables;

@@ -8,17 +8,18 @@ using namespace std;
 namespace InterpreterNP{
 CInterpreter::CInterpreter(){}
 bool CInterpreter::Init(const std::unordered_map<std::string, CTokenValue>& variables){
-    string data[]={"if","while","print","input","exit",
+    string data[]={"if","while","print","input","exit","goto",
                    "count",
                    "+", "-", "=", "/", "*", "^", ">", "<", "==", "!=", ">=", "<=", "~", "!", "||", "&&",
                    " ", ";", "(", ")", ",", "{", "}", "[", "]", "\n", "\t", "\r", "%"
                   };
-    _lexer.Init(data, 5, 1, 16, 13);
+    _lexer.Init(data, 6, 1, 16, 13);
     _syntaxer.SetResWords("if", std::bind(&CInterpreter::IfFunc,this));
     _syntaxer.SetResWords("while", std::bind(&CInterpreter::WhileFunc,this));
     _syntaxer.SetResWords("print", std::bind(&CInterpreter::PrintFunc,this));
     _syntaxer.SetResWords("input", std::bind(&CInterpreter::InputFunc,this));
     _syntaxer.SetResWords("exit", std::bind(&CInterpreter::ExitFunc, this));
+    _syntaxer.SetResWords("goto", std::bind(&CInterpreter::GotoFunc, this));
     _syntaxer.SetFunction("count", [](const CTokenValue& val)->CTokenValue {
         return CTokenValue(std::to_string(val.GetSize()), E_TOKEN_VALUE_TYPES::tvInt); 
     });
@@ -166,6 +167,15 @@ void CInterpreter::WhileFunc(){
         else
             throw std::runtime_error("incorrect operator while syntax");
      }
+}
+void CInterpreter::GotoFunc() {
+    CTokenValue val_tok;
+    _syntaxer.GetToken();
+    _syntaxer.SkipDevider();
+    if (_syntaxer.GetCurTokType() != ttVariable) {
+        throw runtime_error("incorrect operator goto syntax");
+    }
+    _syntaxer.SetToLabel(_syntaxer.GetCurTokText());
 }
 void CInterpreter::IfFunc(){
      bool cond = false;

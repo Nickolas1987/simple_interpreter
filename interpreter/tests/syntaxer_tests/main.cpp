@@ -15,11 +15,12 @@ protected:
 };
 
 TEST_F(TestSyntaxer, test1){
-    std::cout << std::endl;
+    std::cout << std::endl << "Test arithmetic" << std::endl;
     _interpreter.Run("../resourses/test_prog_2.txt");
     std::cout << std::endl;
 }
 TEST_F(TestSyntaxer, test2){
+    std::cout << std::endl << "Test array and cycle" << std::endl;
     InterpreterNP::CTokenValue arr_val("", E_TOKEN_VALUE_TYPES::tvArray);
     arr_val[0] = InterpreterNP::CTokenValue("2.75", E_TOKEN_VALUE_TYPES::tvDouble);
     arr_val[1] = InterpreterNP::CTokenValue("3.1", E_TOKEN_VALUE_TYPES::tvDouble);
@@ -58,6 +59,12 @@ TEST_F(TestSyntaxer, test2){
        }
      }
     }
+}
+TEST_F(TestSyntaxer, test3){
+    std::cout << std::endl << "Goto test" << std::endl;
+    _interpreter.Init();
+    _interpreter.Run("../resourses/test_prog_4.txt");
+    std::cout << std::endl;
 }
 
 

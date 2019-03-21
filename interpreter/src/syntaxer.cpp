@@ -12,7 +12,7 @@ CSyntaxer::CSyntaxer(const TokensArray& tok_arr):_cur_tok_ind(0){
               "There is meaning symbol '='",
               "Not variable",
               "Undefined function",
-          "There is meaning symbol ']'"
+              "There is meaning symbol ']'"
              };
 }
 void CSyntaxer::SetTokBuf(const TokensArray& tok_arr){
@@ -390,6 +390,18 @@ void CSyntaxer::Unary(char o, CTokenValue& result){
     }
 }
 //work with token
+void CSyntaxer::SetToLabel(const std::string& name) {
+  size_t pos = 0;
+  for (auto iter : _tokens) {
+    if (iter.Text().find(name) == 0 && iter.Type() == ttLabel) {
+      _cur_tok_ind = ++pos;
+      break;
+    }
+    else {
+      ++pos;
+    }
+  }
+}
 E_TOKEN_TYPES CSyntaxer::GetCurTokType() {
   return _cur_tok.Type();
 }
